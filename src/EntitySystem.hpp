@@ -6,23 +6,24 @@
 
 #include "Vectors.hpp"
 
+#include <iostream>
+
 template<typename... Components>
 class EntitySystem
 {
+private:
+    Vectors<Components...> components;
 public:
     template<typename Component>
     void add(Component component) {
-        vectors.get<Component>().push_back(component);
+        components.template getVector<Component>().push_back(component);
     }
 
     template<typename Component>
-    std::vector<Component>& get() {
-        return vectors.get<Component>();
+    std::vector<Component> & get() {
+        return components.template getVector<Component>();
     }
 
-private:
-    //std::tuple<std::vector<Components>...> components;
-    Vectors<Components...> vectors;
 };
 
 #endif // ENTITYSYSTEM_HPP

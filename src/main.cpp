@@ -14,6 +14,7 @@ public:
 
 int main()
 {
+
     EntitySystem<Name, Position> entitySystem;
     entitySystem.add(Name());
     entitySystem.get<Name>()[0].name = "A name";
