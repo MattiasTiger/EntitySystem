@@ -2,36 +2,10 @@
 #define VECTORS_HPP
 
 #include <vector>
-#include <tuple>
 #include <algorithm>
 #include <type_traits>
 
-// META-FUNCTIONS
-// =======================================================
-
-
-/* Get the intex to a specific type in a variadic list (first found)
- */
-
-// 2) Recursion, traverse Types
-template<typename Wanted, int N, typename First, typename... Types>
-struct get_index_helper {
-    enum {INDEX = get_index_helper<Wanted, N+1, Types...>::INDEX};
-};
-
-// 3) Break when Wanted found in Types and "return" N.
-template<typename Wanted, int N, typename... Types>
-struct get_index_helper<Wanted, N, Wanted, Types...> {
-    enum {INDEX = N};
-};
-
-// 1) Interface. Wanted = Type which index we want. Types = all types in order.
-template<typename Wanted, typename... Types>
-struct get_index {
-    enum {INDEX = get_index_helper<Wanted, 0, Types...>::INDEX};
-};
-
-//--------------------------------------------------------------------------
+#include "MetaLibrary.hpp"
 
 
 /* Get the length of a variadic list

@@ -26,5 +26,5 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Binaries
-ADD_EXECUTABLE(dense_kitchen main.cpp Component.cpp)
+ADD_EXECUTABLE(dense_kitchen main.cpp MetaLibrary.hpp Component.hpp System.hpp EntitySystem.hpp)
 
