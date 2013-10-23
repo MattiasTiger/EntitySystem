@@ -3,25 +3,22 @@
 
 #include <map>
 
-#include "Component.hpp"
 #include "Vectors.hpp"
 #include "Lists.hpp"
-
 #include "Entity.hpp"
+#include "Component.hpp"
 
 template<typename... Components>
 class EntitySystem
 {
-private:
-    Vectors<Components...> components;
-    Lists<Components*...> freeLists;
-    std::map<int, Entity<Components...> > entities;
-
 public:
+    EntitySystem() {}
 
     template<typename Component> std::vector<Component> & getComponents();
 
     Entity<Components...> & createEntity();
+
+    Entity<Components...> & getEntity(int id);
 
     template<typename Component> void hasComponent(Entity<Components...> & entity);
 
@@ -29,6 +26,10 @@ public:
 
     template<typename Component> void removeComponent(Entity<Components...> & entity);
 
+private:
+    Vectors<Components...> components;
+    Lists<Components*...> freeLists;
+    std::map<int, Entity<Components...> > entities;
 };
 
 template<typename... Components>
@@ -46,6 +47,11 @@ Entity<Components...> & EntitySystem<Components...>::createEntity() {
 }
 
 template<typename... Components>
+Entity<Components...> & EntitySystem<Components...>::getEntity(int id) {
+    return entities[id];
+}
+
+template<typename... Components>
 template<typename Component>
 void EntitySystem<Components...>::hasComponent(Entity<Components...> & entity) {
     return entity.template has<Component>();
@@ -54,6 +60,15 @@ void EntitySystem<Components...>::hasComponent(Entity<Components...> & entity) {
 template<typename... Components>
 template<typename Component>
 void EntitySystem<Components...>::addComponent(Entity<Components...> & entity) {
+    // If another Component is required, add this first, then proceed
+    bool fullFillRequirements = true;
+
+    if(std::tuple_size<typename Component::REQUIRED_COMPONENTS>::value > 0)
+    {
+        fullFillRequirements = entity.template hasComponents2<typename Component::REQUIRED_COMPONENTS>();
+    }
+    std::cerr << "Component prerequisites fullfilled: "+(fullFillRequirements?std::string("yes"):std::string("no"));
+
     if(!freeLists.template getContainer<Component*>().empty()) {
         Component * c = freeLists.template getContainer<Component*>().back();
         entity.template assign<Component>((int)c);
@@ -63,9 +78,7 @@ void EntitySystem<Components...>::addComponent(Entity<Components...> & entity) {
         Component * c = (Component*) (getComponents<Component>().size()-1);
         entity.template assign<Component>((int)c);
     }
-
     //getComponents<Component>().reserve(100);    // Should probably reserve tons of components somewhere...
-
 }
 
 template<typename... Components>
