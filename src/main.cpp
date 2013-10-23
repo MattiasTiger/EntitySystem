@@ -7,7 +7,7 @@
 
 class Name : public Component {
 public:
-    std::string name;
+    std::string nameString;
 };
 
 class Position : public Component {
@@ -15,13 +15,12 @@ public:
     float x;
 };
 
-
 class SystemTest : public System<Name, AllComponents>
 {
 public:
     SystemTest(EntitySystem<AllComponents> & es):System<Name, AllComponents>::System(es) {}
     void processStep(Name & name) {
-        std::cerr << "name: " + name.name + "\n";
+        std::cerr << "name: " + name.nameString + "\n";
     }
 };
 
@@ -31,11 +30,10 @@ int main()
 
     Entity<AllComponents> & e = entitySystem.createEntity();
     Entity<AllComponents> & e2 = entitySystem.createEntity();
-    entitySystem.addComponent<Name>(e);
-    entitySystem.addComponent<Name>(e2);
-    e.get<Name>()->name = "John Doe";
-    e2.get<Name>()->name = "Bar Foo";
-    std::cerr << "\n";
+    e.add<Name>();
+    e2.add<Name>();
+    e.get<Name>().nameString = "John Doe";
+    e2.get<Name>().nameString = "Bar Foo";
 
     SystemTest test(entitySystem);
     test.batch();
