@@ -31,9 +31,11 @@ int main()
     Entity<AllComponents> & e = entitySystem.createEntity();
     Entity<AllComponents> & e2 = entitySystem.createEntity();
     e.add<Name>();
-    e2.add<Name>();
     e.get<Name>().nameString = "John Doe";
-    e2.get<Name>().nameString = "Bar Foo";
+    e.remove<Name>();
+    e2.add<Name>();
+    //e2.get<Name>().nameString = "Bar Foo";
+    std::cerr << "\n";
 
     SystemTest test(entitySystem);
     test.batch();

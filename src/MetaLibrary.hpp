@@ -5,13 +5,11 @@
  * \brief   Provides meta functionality in a clear and neat way.
  */
 
+#include "MetaLibrary/VariadicUtilities.hpp"
 #include "MetaLibrary/VariadicIndexing.hpp"
 #include "MetaLibrary/VariadicTypedef.hpp"
+#include "MetaLibrary/MultiContainer.hpp"
 
-template <typename DataType, class... Args>
-std::tuple<Args...> tupleAssign(DataType value)
-{
-    return std::make_tuple(Args(value)...);
-};
+
 
 #endif

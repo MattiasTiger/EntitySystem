@@ -28,7 +28,10 @@ private:
     std::tuple<Components*...> componentIndexes;
 
     template<typename Component>
-    void assign(Component * index);
+    void assign(int index);
+
+    template<typename Component>
+    int getIndex();
 };
 
 template<typename... Components>
@@ -60,8 +63,13 @@ template<typename Component> void Entity<Components...>::remove() {
 }
 
 template<typename... Components>
-template<typename Component> void Entity<Components...>::assign(Component * index) {
-    std::get<get_index<Component,Components...>::INDEX>(componentIndexes) = index;
+template<typename Component> void Entity<Components...>::assign(int index) {
+    std::get<get_index<Component,Components...>::INDEX>(componentIndexes) = (Component*)(index+1);
+}
+
+template<typename... Components>
+template<typename Component> int Entity<Components...>::getIndex() {
+    return ((int)std::get<get_index<Component,Components...>::INDEX>(componentIndexes))-1;
 }
 
 #endif // ENTITY_HPP

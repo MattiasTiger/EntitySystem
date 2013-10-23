@@ -23,5 +23,5 @@ ENDIF()
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Binaries
-ADD_EXECUTABLE(entity_demo main.cpp EntitySystem.hpp Entity.hpp Component.hpp System.hpp MetaLibrary.hpp)
+ADD_EXECUTABLE(entity_demo main.cpp EntitySystem.hpp Entity.hpp Component.hpp System.hpp MetaLibrary.hpp Vectors.hpp Lists.hpp)
 

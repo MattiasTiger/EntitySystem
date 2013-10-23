@@ -5,6 +5,7 @@
 
 #include "Component.hpp"
 #include "Vectors.hpp"
+#include "Lists.hpp"
 
 #include "Entity.hpp"
 
@@ -13,6 +14,7 @@ class EntitySystem
 {
 private:
     Vectors<Components...> components;
+    Lists<Components*...> freeLists;
     std::map<int, Entity<Components...> > entities;
 
 public:
@@ -32,7 +34,7 @@ public:
 template<typename... Components>
 template<typename Component>
 std::vector<Component> & EntitySystem<Components...>::getComponents() {
-    return components.template getVector<Component>();
+    return components.template getContainer<Component>();
 }
 
 template<typename... Components>
@@ -52,25 +54,25 @@ void EntitySystem<Components...>::hasComponent(Entity<Components...> & entity) {
 template<typename... Components>
 template<typename Component>
 void EntitySystem<Components...>::addComponent(Entity<Components...> & entity) {
-    // TODO: some magic, not the things below
+    if(!freeLists.template getContainer<Component*>().empty()) {
+        Component * c = freeLists.template getContainer<Component*>().back();
+        entity.template assign<Component>((int)c);
+        freeLists.template getContainer<Component*>().pop_back();
+    } else {
+        getComponents<Component>().push_back(Component());
+        Component * c = (Component*) (getComponents<Component>().size()-1);
+        entity.template assign<Component>((int)c);
+    }
 
-    // Do: Check free-list for that Component type
-    //      Use component index from free-list if possible, otherwise push back new Component.
+    //getComponents<Component>().reserve(100);    // Should probably reserve tons of components somewhere...
 
-    //getComponents<Component>().reserve(100);    // To get around the segfault due to vector expansion and reallocation.. Should probably use index-list instead of pointer list in Entity (and a reference to the entity system...? :/)
-    getComponents<Component>().push_back(Component());
-    Component * c = (Component*) (getComponents<Component>().size());
-    entity.assign(c);
 }
 
 template<typename... Components>
 template<typename Component>
 void EntitySystem<Components...>::removeComponent(Entity<Components...> & entity) {
-    // TODO: some magic, not the things below
-
-    // Do: Add component index to free-list for that Component type.
-    //delete std::get<get_index<Component,Components...> >(entity.componentPointers);
-    entity.assign(0);
+    freeLists.template getContainer<Component*>().push_back((Component*)entity.template getIndex<Component>());
+    entity.template assign<Component>(-1);
 }
 
 #endif // ENTITYSYSTEM_HPP
