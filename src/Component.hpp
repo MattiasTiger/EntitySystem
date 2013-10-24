@@ -6,8 +6,7 @@ class Component
 {
 public:
     typedef std::tuple<RequiredComponents...> REQUIRED_COMPONENTS;
-private:
-    int Entity;
+    int entityOwnerID;
 };
 
 #endif // COMPONENT_HPP

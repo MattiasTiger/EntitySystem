@@ -10,7 +10,7 @@ public:
     std::string nameString;
 };
 
-class Position : public Component<Name> {
+class Position : public Component<Name, Position> {
 public:
     float x;
 };
@@ -30,18 +30,17 @@ int main()
 
     Entity<AllComponents> & e = entitySystem.createEntity();
     Entity<AllComponents> & e2 = entitySystem.createEntity();
-    e.add<Position>();
     e.add<Name>();
+    e.add<Position>();
     e.add<Position>();
     //std::cerr << "hasName: "+std::to_string(e.has<Name>());
     //std::cerr << "hasPosition: "+std::to_string(e.has<Position>());
-    std::cerr << "\n";
-/*
+
     e.get<Name>().nameString = "John Doe";
     e.remove<Name>();
     e2.add<Name>();
     //e2.get<Name>().nameString = "Bar Foo";
-*/
+
     std::cerr << "\n";
     SystemTest test(entitySystem);
     test.batch();

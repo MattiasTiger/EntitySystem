@@ -15,7 +15,7 @@ IF(WIN32)
     # Windows specific
     MESSAGE( STATUS "MINGW: " ${MINGW} )
     IF(MINGW)
-        SET (CMAKE_CXX_FLAGS "-std=c++11 -Wall")
+        SET (CMAKE_CXX_FLAGS "-std=c++11 -Wall -pedantic")
     ENDIF()
 ENDIF()
 

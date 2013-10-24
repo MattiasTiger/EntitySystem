@@ -27,9 +27,9 @@ private:
     EntitySystem<Components...> * es;
     std::tuple<Components*...> componentIndexes;
 
-    template<typename Component> void assign(int index);
-
-    template<typename Component> int getIndex();
+    template<typename Component> void assign(long index);
+    template<typename Component> long getIndex();
+    constexpr bool hasComponent(long index) {  return index > 0; }
 
 
     // Checks if the component have all component types specified in Compos.
@@ -46,7 +46,7 @@ private:
         return has_helper<Compos...>();
     }
 
-    // Checks if the component have all component types of a tuple.
+    // Checks if the component have all component types present in a tuple.
     template<int N, int N_MAX, typename tuple>
     struct has_helper2 {
         static bool help(Entity * e) {
@@ -64,12 +64,33 @@ private:
         return has_helper2<0, std::tuple_size<tuple>::value, tuple>::help(this);
     }
 
+    // Checks if the component have all component types present in a tuple. Returns -1 if all requirements are satisfied.
+    template<int N, int N_MAX, typename tuple>
+    struct getMissingTypeIndex_helper {
+        static long help(Entity * e) {
+            if(e->has<typename std::tuple_element<N,tuple>::type>())
+                return getMissingTypeIndex_helper<N+1, N_MAX, tuple>::help(e);
+            else
+                return N;
+        }
+    };
+    template<int N_MAX, typename tuple>
+    struct getMissingTypeIndex_helper<N_MAX, N_MAX, tuple> {
+        static long help(Entity * e) {
+            return -1;
+        }
+    };
+    template<typename tuple>
+    long getMissingTypeIndex() {
+        return (long)getMissingTypeIndex_helper<0, std::tuple_size<tuple>::value, tuple>::help(this);
+    }
+
 };
 
 template<typename... Components>
 template<typename Component> bool Entity<Components...>::has() {
     Component * index = std::get<get_index<Component,Components...>::INDEX >(componentIndexes);
-    return ((int)index) > 0;
+    return hasComponent((long)index);
 }
 
 template<typename... Components>
@@ -81,7 +102,7 @@ template<typename Component> Component & Entity<Components...>::get() {
 template<typename... Components>
 template<typename Component> void Entity<Components...>::add() {
     Component * index = std::get<get_index<Component,Components...>::INDEX >(componentIndexes);
-    //if(((int)index) > 0)   // Already have the component
+    //if(hasComponent(index))   // Already have the component
     //    return;
     es->template addComponent<Component>(*this);
 }
@@ -89,19 +110,19 @@ template<typename Component> void Entity<Components...>::add() {
 template<typename... Components>
 template<typename Component> void Entity<Components...>::remove() {
     Component * index = std::get<get_index<Component,Components...>::INDEX >(componentIndexes);
-    if(((int)index) <= 0)   // Does not have the component
+    if(!hasComponent((long)index))   // Does not have the component
         return;
     es->template removeComponent<Component>(*this);
 }
 
 template<typename... Components>
-template<typename Component> void Entity<Components...>::assign(int index) {
+template<typename Component> void Entity<Components...>::assign(long index) {
     std::get<get_index<Component,Components...>::INDEX>(componentIndexes) = (Component*)(index+1);
 }
 
 template<typename... Components>
-template<typename Component> int Entity<Components...>::getIndex() {
-    return ((int)std::get<get_index<Component,Components...>::INDEX>(componentIndexes))-1;
+template<typename Component> long Entity<Components...>::getIndex() {
+    return ((long)std::get<get_index<Component,Components...>::INDEX>(componentIndexes))-1;
 }
 
 #endif // ENTITY_HPP
