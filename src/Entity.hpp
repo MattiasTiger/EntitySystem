@@ -64,7 +64,7 @@ private:
         return has_helper2<0, std::tuple_size<tuple>::value, tuple>::help(this);
     }
 
-    // Checks if the component have all component types present in a tuple. Returns -1 if all requirements are satisfied.
+    // Return the index of the first missing type from its requirements. Return -1 if all requirements are satisfied.
     template<int N, int N_MAX, typename tuple>
     struct getMissingTypeIndex_helper {
         static long help(Entity * e) {
@@ -102,8 +102,8 @@ template<typename Component> Component & Entity<Components...>::get() {
 template<typename... Components>
 template<typename Component> void Entity<Components...>::add() {
     Component * index = std::get<get_index<Component,Components...>::INDEX >(componentIndexes);
-    //if(hasComponent(index))   // Already have the component
-    //    return;
+    if(hasComponent((long)index))   // Already have the component
+        return;
     es->template addComponent<Component>(*this);
 }
 

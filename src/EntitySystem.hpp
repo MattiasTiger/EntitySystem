@@ -30,6 +30,50 @@ private:
     Vectors<Components...> components;
     Lists<Components*...> freeLists;
     std::map<int, Entity<Components...> > entities;
+
+    // Add all required components (specified by the types in the tuple)
+    // Interface: add_components<tuple>::ADD(entitySystem, entity);
+    //-------------------------->>
+    // Recursion
+    template<int N, int N_MAX, typename tuple, typename tupleType>
+    struct add_components__ {
+        static inline void ADD(EntitySystem<Components...> & es, Entity<Components...> & e) {
+            typedef typename std::tuple_element<N,tuple>::type TYPE_N;
+            if(!e.template has<tupleType>()) {
+                e.template add<tupleType>();
+                std::cerr << "When adding a new component, Entity("+std::to_string(e.getID())+") didn't have its required component \""+e.template get<tupleType>().getName()+"\". It has now been added!";
+            }
+            add_components__<N+1, N_MAX, tuple, TYPE_N>::ADD(es, e);
+        }
+    };
+    // Terminate when N == N_MAX
+    template<int N_MAX, typename tuple, typename tupleType>
+    struct add_components__<N_MAX, N_MAX, tuple, tupleType> {
+        static inline void ADD(EntitySystem<Components...> & es, Entity<Components...> & e) {}
+    };
+    // Requirements exist, start adding components!
+    template<int N_MAX, typename tuple>
+    struct add_components_ {
+        typedef typename std::tuple_element<0,tuple>::type TYPE_0;
+        static inline void ADD(EntitySystem<Components...> & es, Entity<Components...> & e) {
+            add_components__<0, N_MAX, tuple, TYPE_0>::ADD(es,e);
+        }
+    };
+    // Exit if no requirements exist
+    template<typename tuple>
+    struct add_components_<0, tuple> {
+        static inline void ADD(EntitySystem<Components...> & es, Entity<Components...> & e) {}
+    };
+    // Interface
+    template<typename tuple>
+    struct add_components {
+        static const int size = std::tuple_size<tuple>::value;
+        static inline void ADD(EntitySystem<Components...> & es, Entity<Components...> & e) {
+            add_components_<size, tuple>::ADD(es,e);
+        }
+
+    };
+    //<<--------------------------
 };
 
 template<typename... Components>
@@ -57,23 +101,13 @@ void EntitySystem<Components...>::hasComponent(Entity<Components...> & entity) {
     return entity.template has<Component>();
 }
 
+
+
 template<typename... Components>
 template<typename Component>
 void EntitySystem<Components...>::addComponent(Entity<Components...> & entity) {
-    // If another Component is required, add this first, then proceed
-    bool fullFillRequirements = true;
 
-    if(std::tuple_size<typename Component::REQUIRED_COMPONENTS>::value > 0)
-    {
-        bool isMissingRequiredComponent = entity.template getMissingTypeIndex<typename Component::REQUIRED_COMPONENTS>() != -1;
-        if(isMissingRequiredComponent) {
-
-        }
-        //fullFillRequirements = entity.template hasComponents2<typename Component::REQUIRED_COMPONENTS>();
-        std::cerr << "index of first missing type: "+std::to_string(entity.template getMissingTypeIndex<typename Component::REQUIRED_COMPONENTS>());
-    }
-    std::cerr << "Component prerequisites fullfilled: "+(fullFillRequirements?std::string("yes"):std::string("no"));
-
+    // Add Component to entity
     if(!freeLists.template getContainer<Component*>().empty()) {
         long index = (long)freeLists.template getContainer<Component*>().back();
         getComponents<Component>()[index].entityOwnerID = entity.getID();
@@ -85,6 +119,10 @@ void EntitySystem<Components...>::addComponent(Entity<Components...> & entity) {
         long index = getComponents<Component>().size()-1;
         entity.template assign<Component>(index);
     }
+
+    // If additional Components are required, add these aswell (recursively)
+    add_components<typename Component::REQUIRED_COMPONENTS>::ADD(*this, entity);
+
     //getComponents<Component>().reserve(100);    // Should probably reserve tons of components somewhere...
 }
 

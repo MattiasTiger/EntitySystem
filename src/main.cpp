@@ -7,11 +7,13 @@
 
 class Name : public Component<> {
 public:
+    const std::string getName() override { return "Name"; }
     std::string nameString;
 };
 
-class Position : public Component<Name, Position> {
+class Position : public Component<Name> {
 public:
+    const std::string getName() override { return "Position"; }
     float x;
 };
 
@@ -20,7 +22,8 @@ class SystemTest : public System<Name, AllComponents>
 public:
     SystemTest(EntitySystem<AllComponents> & es):System<Name, AllComponents>::System(es) {}
     void processStep(Name & name) {
-        std::cerr << "name: " + name.nameString + "\n";
+        Entity<AllComponents> & e = getEntity(name);
+        std::cerr << "name: " + e.get<Name>().nameString + "\n";
     }
 };
 
@@ -30,16 +33,9 @@ int main()
 
     Entity<AllComponents> & e = entitySystem.createEntity();
     Entity<AllComponents> & e2 = entitySystem.createEntity();
-    e.add<Name>();
-    e.add<Position>();
-    e.add<Position>();
-    //std::cerr << "hasName: "+std::to_string(e.has<Name>());
-    //std::cerr << "hasPosition: "+std::to_string(e.has<Position>());
 
+    e.add<Position>();  // Require component Name! It is added by automagic.
     e.get<Name>().nameString = "John Doe";
-    e.remove<Name>();
-    e2.add<Name>();
-    //e2.get<Name>().nameString = "Bar Foo";
 
     std::cerr << "\n";
     SystemTest test(entitySystem);

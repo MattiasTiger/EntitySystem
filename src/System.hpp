@@ -9,8 +9,12 @@ class System
 public:
     System(EntitySystem<Components...> & entitySystem) : es(entitySystem) {}
 
+    // External methods
     virtual void processStep(PrimaryComponent & c) = 0;
     void batch();
+
+    // Internal methods
+    Entity<Components...> & getEntity(PrimaryComponent & c);
 
 private:
     EntitySystem<Components...> & es;
@@ -27,6 +31,11 @@ void System<PrimaryComponent, Components...>::batch() {
     for(int n = 0; n < components.size(); n++) {
         processStep(components[n]);
     }
+}
+
+template<typename PrimaryComponent, typename... Components>
+Entity<Components...> & System<PrimaryComponent, Components...>::getEntity(PrimaryComponent & c) {
+    return es.getEntity(c.entityOwnerID);
 }
 
 
