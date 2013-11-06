@@ -11,7 +11,7 @@ public:
     std::string nameString;
 };
 
-class Position : public Component<Name> {
+class Position : public Component<Position, Name> {
 public:
     const std::string getName() override { return "Position"; }
     float x;
@@ -29,6 +29,7 @@ public:
 
 int main()
 {
+    /*
     EntitySystem<AllComponents> entitySystem;
 
     Entity<AllComponents> & e = entitySystem.createEntity();
@@ -40,6 +41,36 @@ int main()
     std::cerr << "\n";
     SystemTest test(entitySystem);
     test.batch();
+    */
+
+    int i = MetaFunction<get_index, merge_tuples<std::tuple<Name>, Position::REQUIRED_COMPONENTS>::type>::INDEX;
+    std::cout << i << "\n";
+
+    /*
+    meta::if<requireRandomAccess<Something>::type,
+            MetaFunction<std::vector, type>,
+            MetaFunction<std::list, type>           >::type myContainer;
+    */
+
+    std::vector<std::string> componentNames;
+    semi_meta::ForEach<Position::REQUIRED_COMPONENTS, PushComponentName, decltype(componentNames)>::execute(componentNames);
+    for(int n = 0; n < componentNames.size(); n++)
+        std::cout << componentNames[n] << "\n";
+
+    std::cout << "\n";
+    semi_meta::ForEach<Position::REQUIRED_COMPONENTS, CoutComponentName>::execute();
+
+    meta::ForEach<std::tuple<Position>, RemoveIfRequired, std::tuple<Position> >::execute();
+
+    std::cout << "testing IF...\n";
+
+    // Below: require that isTupleEmpty is a meta::True or meta::False...
+    //meta::IF<meta::NOT<isTupleEmpty<std::tuple<Name> >::value >, meta::test>::execute();
+
+    typedef meta::Tuple<double, int> T;
+    std::cout << T::length << "\n";
+    T::getType<1>::type a = 15;
+    std::cout << a << "\n";
 
     return 0;
 }

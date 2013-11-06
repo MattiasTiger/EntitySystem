@@ -1,0 +1,16 @@
+
+
+> Detect what kind of type a type is
+	http://stackoverflow.com/questions/13101061/detect-if-a-type-is-a-stdtuple
+	
+> Merge tuples
+	http://stackoverflow.com/questions/6957478/c0x-merging-tuples
+	
+> Generate sequences (indices)
+	http://stackoverflow.com/questions/17602761/how-to-make-a-tuple-based-on-some-derived-types
+	http://stackoverflow.com/questions/15014096/c-index-of-type-during-variadic-template-expansion
+	
+> Compiler error on demand (with message)
+	http://stackoverflow.com/questions/459386/c-metaprogramming-generating-errors-in-code
+	
+

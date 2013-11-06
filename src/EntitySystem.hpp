@@ -126,12 +126,81 @@ void EntitySystem<Components...>::addComponent(Entity<Components...> & entity) {
     //getComponents<Component>().reserve(100);    // Should probably reserve tons of components somewhere...
 }
 
+// ->
+
+namespace meta
+{
+
+    struct test {
+        static void execute() {
+            std::cout << "tesing!\n";
+        }
+    };
+
+
+    template<int N, int N_MAX, typename Tuple, template<typename...> class Template, typename TemplateArgs>
+    struct ForEach_ {
+        static void next() {
+            typedef typename std::tuple_element<N,Tuple>::type TypeN;
+            MetaFunction<Template, typename merge_tuples<std::tuple<TypeN>, TemplateArgs>::type>::execute();
+            ForEach_<N+1, N_MAX, Tuple, Template, TemplateArgs>::next();
+        }
+    };
+    template<int N_MAX, typename Tuple, template<typename...> class Template, typename TemplateArgs>
+    struct ForEach_<N_MAX, N_MAX, Tuple, Template, TemplateArgs> {
+        static void next() {}
+    };
+    template<typename Tuple, template<typename...> class Template, typename TemplateArgs>
+    struct ForEach {
+        static void execute() {
+            ForEach_<0, std::tuple_size<Tuple>::value, Tuple, Template, TemplateArgs>::next();
+        }
+    };
+}
+
+template<typename Type, typename Tuple, int N>
+struct Contains_ : public meta::True {};
+
+template<typename Type, typename Tuple>
+struct Contains_<Type, Tuple, -1> : public meta::False {};
+template<typename Type, typename Tuple>
+struct Contains_<Type, Tuple, 0> : public meta::True {};
+template<typename Type, typename Tuple>
+struct Contains_<Type, Tuple, 1> : public meta::True {};
+
+template<typename Type, typename Tuple, int N>
+struct Contains_handleEmptyTuple : public Contains_<Type, Tuple, MetaFunction<get_index, typename merge_tuples<std::tuple<Type>, Tuple >::type>::INDEX> {};
+template<typename Type, typename Tuple>
+struct Contains_handleEmptyTuple<Type, Tuple, 0> : public meta::False {};
+
+template<typename Type, typename Tuple>
+struct Contains__ : public Contains_<Type, Tuple, MetaFunction<get_index, typename merge_tuples<std::tuple<Type>, Tuple >::type>::INDEX> {};
+
+template<typename Type, typename Tuple>
+struct Contains : public Contains_handleEmptyTuple<Type, Tuple, std::tuple_size<Tuple>::value> {};
+/*
+struct Contains : public meta::IF<meta::NOT<isTupleEmpty<Tuple> >,
+        Contains__<Type, Tuple>,
+        meta::False> {};
+*/
+
+template<typename AComponent, typename PrimaryComponent>
+struct RemoveIfRequired {
+    static void execute() {
+        meta::IF<Contains<PrimaryComponent, typename AComponent::REQUIRED_COMPONENTS>, meta::test>::execute();
+    }
+};
+
+// <-
+
 template<typename... Components>
 template<typename Component>
 void EntitySystem<Components...>::removeComponent(Entity<Components...> & entity) {
     freeLists.template getContainer<Component*>().push_back((Component*)entity.template getIndex<Component>());
     //getComponents<Component>()[index].entityOwnerID = entity.getID();
     entity.template assign<Component>(-1);
+
+    //ForEach<std::tuple<Components...>, RemoveIfRequired, std::tuple<Component> >::execute();
 }
 
 #endif // ENTITYSYSTEM_HPP
